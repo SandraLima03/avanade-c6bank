@@ -3,89 +3,120 @@ import {
     Typography, 
     Container, 
     Button, 
-    Avatar, 
     TextField, 
     Checkbox, 
-    Grid, 
     Box, 
     CssBaseline,
-    FormControlLabel
 } from '@mui/material';
-import Link from 'next/link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { setDefaultResultOrder } from 'dns';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Snackbar from '../components/Utils/Snackbar';
+import Copyright from '../components/Utils/Copyright';
 //@mui/material
 
-type CopyProps = {
-    site?: string;
-}
-
-function Copyright(props: CopyProps) {
-    return(
-        <Typography>
-            {'Copyright ©️ '}
-            <Link color="inherit" href={`https://www.${props.site}.com.br`}>
-            {props.site}
-            </Link>
-            {' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    )
-}
 
 const theme = createTheme();
 
+
 export default function LoginPage(){
-    const [password, setPassword] = useState<string | undefined | null | FormDataEntryValue>('');
-    const [error, setError] = useState<string | boolean>('');
-    const [errorMessage, setErrorMessage] = useState<string>('');
-    //aqui a mágica acontece
-    const handleSubmit = (event: FormEvent<HTMLFormElement>)=>{
-        //pára tudo!!!
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        // eslint-disable-next-line no-console
-    
-        setPassword(data.get('password'));
-        if(password && password.length < 6 ){
-            setError(true);
-            setErrorMessage("Tá de brincadeira né? Senha muito curta!");
-        }
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+
+//state com variável.
+// one way data binding. significa que o react envia dados para o DOM. O que o DOM faz não importa.
+
+
+const [email, setEmail] = useState<string | undefined |null>('');
+const [password, setPassword] = useState<string | undefined | null | FormDataEntryValue>('');
+//error
+//errorMessage
+//open
+//contador
+const [error, setError] = useState<boolean>(false);
+const [errorMessage, setErrorMessage] = useState<string>('');
+const [open, setOpen] = useState<boolean>(false);
+const [contador, setContador] = useState<number>(0);
+
+
+//Execute automaticamente após o primeiro render da página.
+//Executa a cada alteração de estado ou recarregamento da página.
+useEffect(()=>{
+
+    if(contador == 0){
+        document.title = `Executando useEffect a primeira vez. Contador: ${contador}`;
+    }else{
+        document.title = `Executando useEffect ${contador} vezes`;
     }
+
+    console.log(`Chamou o useEffect ${contador} vezes`);
+    //vai Corinthians;
+
+},[contador]);
+
+//aqui a mágica acontece
+const handleSubmit = (event: FormEvent<HTMLFormElement>)=>{
+    //pára tudo!!!
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+
+    setPassword(data.get('password'));
+
+}
+
+
+useEffect(()=>{
+
+    if(password && password.length < 6){
+        setError(true);
+        setErrorMessage('A senha deve ter no mínimo 6 caracteres');
+    }else if(password){
+        setError(false);
+        setErrorMessage('');
+        //chamar a API do server para validar usuários e senha.
+        //se estiver tudo certo, redirecionar para a página de extrato.
+
+        //adicionar o snackbar
+        setOpen(true);
+        //fazer o redirect
+    }
+},[password]);
 
     return (
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
-                <Box sx={{mt:8, 
-                    display:'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center'
-                    }}>
+    {/* <Snackbar open={open} duration={6} message={'Usuário logado com sucesso! ...Aguarde...'}> */}
+
+   
+      {/* <button onClick={()=>setContador(contador+1)}>Mudando o Contador</button>
+      Contador vale {contador} */}
+                <Box sx={{mt:8,
+                     display:'flex',
+                     flexDirection: 'column',
+                     alignItems:'center'
+                     }}>
                     <Typography component="h1" variant="h5">
                         Tela de Login
                     </Typography>
+                    {/* Qualquer comentário */}
                     <Box component="form" onSubmit={handleSubmit} sx={{mt:1}}>
-                        <TextField autoFocus margin='normal' required id="email" fullWidth label="Digite o login" autoComplete='email'/>
-                        <TextField margin='normal' required id="password" name="password" fullWidth type="password" label="Digite a senha" autoComplete='current-password'/>
+                        <TextField margin="normal" required id="email" name="email" fullWidth label="Digite o login"  autoComplete="email" />
+                        <TextField margin="normal" required fullWidth id="password" name="password" type="password" label="Digite a senha" autoComplete="current-password"/>
                         <FormControlLabel
                         control={<Checkbox value="remember" color="primary"/>}
                         label="Lembrar-me"
                         />
-                        <Button type='submit' fullWidth variant='contained' sx={{mt:3, mb:2}} />
+                        <Button type="submit" fullWidth variant="contained" sx={{mt:3, mb:2}}>
                             Login
-                        <Button />
+                        </Button>
+
+                        {error && <Typography color="error">{errorMessage}</Typography>}
+
                     </Box>
                 </Box>
 
                 <Copyright site="avanade"/>
+                {open && <Snackbar open={open} hide={5} message={'Usuário logado com sucesso! ...Aguarde...'} severity="success"/>}
             </Container>
         </ThemeProvider>
-    
-
- )
+    )
 }
